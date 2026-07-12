@@ -1,0 +1,30 @@
+sequenceDiagram
+    actor Studente
+    participant F as :FormVisualizzaContenutiCorso
+    participant C as :VisualizzaContenutiCorsoController
+    participant CD as :ContenutoDAOH2Impl
+
+    Studente->>+F: apre schermata Contenuti del Corso
+    F->>+C: visualizzaContenutiCorso(corso)
+    C->>+CD: cercaPerCorso(corso)
+    CD-->>-C: elencoContenuti
+    C->>C: costruisceElencoDTO(elencoContenuti)
+    C-->>-F: elencoContenutiDTO
+    F-->>Studente: mostraElenco
+
+    opt Studente imposta filtri
+        Studente->>F: filtraContenuti(categoria, data, sezione)
+        F->>+C: filtraContenuti(corso, categoria, data, sezione)
+        C->>+CD: cercaConFiltri(corso, categoria, data, sezione)
+        CD-->>-C: elencoContenutiFiltrato
+        note right of C: «include» FiltraContenuti
+        C-->>-F: elencoContenutiFiltratoDTO
+        F-->>Studente: mostraElencoFiltrato
+    end
+
+    Studente->>F: selezionaContenuto(contenutoId)
+    F->>+C: selezionaContenuto(contenutoId)
+    C->>+CD: cercaPerId(contenutoId)
+    CD-->>-C: contenuto
+    C-->>-F: dettaglioContenutoDTO
+    F-->>-Studente: mostraDettaglio

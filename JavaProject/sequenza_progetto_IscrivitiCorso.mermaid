@@ -1,0 +1,39 @@
+sequenceDiagram
+    actor Studente
+    participant F as :FormIscrivitiCorso
+    participant C as :IscrivitiCorsoController
+    participant CD as :CorsoDAOH2Impl
+    participant ID as :IscrizioneDAOH2Impl
+    participant CO as :Corso
+
+    Studente->>+F: inserisce codiceCorso, click Iscriviti
+    F->>F: verificaCodiceCorso(codiceCorso)
+    F->>+C: iscrivitiCorso(studente, codiceCorso)
+    C->>+CD: cercaPerCodice(codiceCorso)
+    CD-->>-C: corso
+
+    alt corso esistente
+        C->>+ID: verificaEsistente(studente, corso)
+        ID-->>-C: booleano
+
+        alt studente non già iscritto
+            create participant IS as :Iscrizione
+            C->>IS: <<create>>(studente, corso)
+            C->>+ID: salva(iscrizione)
+            ID-->>-C: ok
+            C->>CO: aggiungiIscrizione(iscrizione)
+            C-->>F: SUCCESSO
+            F-->>Studente: confermaIscrizione
+        else studente già iscritto
+            C-->>F: STUDENTE_GIA_ISCRITTO
+            F-->>Studente: messaggioGiaIscritto
+        end
+    else corso inesistente
+        C-->>F: CORSO_INESISTENTE
+        F-->>Studente: erroreCodiceNonValido
+    end
+
+    deactivate C
+    deactivate F
+
+    note over F,C: Rispetto al diagramma di analisi, il controllo di formato su codiceCorso è stato spostato nella Boundary, secondo il principio illustrato nelle slide sul BCED.
